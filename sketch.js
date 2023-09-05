@@ -11,7 +11,7 @@ class Paddle {
     constructor(x) {
         this.x = x;
         this.y = height / 2;
-        this.w = 40; // Changed the width to 40
+        this.w = 20;
         this.h = 60;
         this.vy = 0;
     }
@@ -27,25 +27,12 @@ class Paddle {
             this.y += this.vy;
         }
         
-        this.y = constrain(this.y, this.h / 1.5, height - this.h / 1.5);
+        this.y = constrain(this.y, barHeight + this.h / 2, height - barHeight - this.h / 2);
     }
 
     draw() {
-        if (this.x < width / 2) {
-            push();
-            translate(this.x, this.y); 
-            rotate(-0.5);
-            image(bat, 0, 0, this.w, this.h);
-            pop();
-        }
-        if (this.x > width / 2) {
-            push();
-            translate(this.x, this.y); 
-            rotate(2.5);
-            image(bat, 0, 0, this.w, this.h);
-            pop();
-        }
-        
+        fill(139, 69, 19); // Cor marrom
+        rect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h); 
     }
 }
 
@@ -93,19 +80,21 @@ class Ball {
             }
             this.reset();
         }
-        if (this.y < this.r || this.y > height - this.r) {
+        if (this.y < this.r + barHeight || this.y > height - this.r - barHeight) {
             this.vy *= -1;
         }
 
         if (collidesWithCircle(jogador.x, jogador.y, jogador.w, jogador.h, this.x, this.y, this.r)) {
             bounce.play();
-            this.vx *= -1.1; 
-            this.vy *= 1.1;  
+            this.vx *= -1.1;
+            let deltaY = this.y - jogador.y;  // Diferença entre o centro do paddle e o ponto de colisão
+            this.vy = deltaY * 0.1;  // Alterar velocidade vertical com base no ponto de colisão
         }
         if (collidesWithCircle(oponente.x, oponente.y, oponente.w, oponente.h, this.x, this.y, this.r)) {
             bounce.play();
-            this.vx *= -1.1; 
-            this.vy *= 1.1;  
+            this.vx *= -1.1;
+            let deltaY = this.y - oponente.y;  // Diferença entre o centro do paddle e o ponto de colisão
+            this.vy = deltaY * 0.1;  // Alterar velocidade vertical com base no ponto de colisão
         }
     }
 
@@ -122,14 +111,12 @@ let ball;
 
 function preload() {
     goles = loadImage('goles.png');
-    bat = loadImage('Beater_Bat.png'); 
     background = loadImage('quidditch.jpeg');
     bounce = loadSound('hit.wav');
     goal = loadSound('goal.mp3');
 }
 
 function falaPontos() {
-    // use speechapi
     if ('speechSynthesis' in window) {
         let msg = new SpeechSynthesisUtterance();
         msg.text = "Grifinória " + playerScore + ", Sonserina " + opponentScore;
@@ -137,6 +124,8 @@ function falaPontos() {
         speechSynthesis.speak(msg);
     }
 }
+
+let barHeight = 20; // Altura das barras douradas
 
 function setup() {
     createCanvas(800, 400);
@@ -147,6 +136,12 @@ function setup() {
 
 function draw() {
     image(background, 0, 0, width, height);
+
+    // Desenhar barras douradas
+    fill(255, 215, 0); // Cor dourada
+    rect(0, 0, width, barHeight); // Barra superior
+    rect(0, height - barHeight, width, barHeight); // Barra inferior
+
     ball.update();
     ball.draw();
     jogador.update();
